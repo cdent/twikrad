@@ -9,10 +9,13 @@ WriteMakefile(
     ABSTRACT_FROM       => 'lib/TiddlyWeb/Wikrad.pm',
     PL_FILES            => {},
     PREREQ_PM => {
-        'Curses::UI'                  => '0.95',
-        'JSON'                        => '0',
+        'Curses::UI'    => '0.95',
+        'JSON'          => '0',
+        'JSON::XS'      => '0',
+        'Class::Field'  => '0',
+        'Readonly'      => '0',
+        'YAML'          => '0',
     },
     EXE_FILES           => ['bin/twikrad'],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'TiddlyWeb-Wikrad-*' },
 );

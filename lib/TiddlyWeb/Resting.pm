@@ -476,8 +476,6 @@ sub get_workspaces {
 sub _request {
     my $self = shift;
     my %p    = @_;
-    use Data::Dumper;
-    print {$self->{log}} scalar(localtime(time)), Dumper(\%p), "\n";
     my $ua   = LWP::UserAgent->new(agent => $self->agent_string);
     my $server = $self->server;
     die "No server defined!\n" unless $server;
@@ -494,7 +492,6 @@ sub _request {
     $request->header( 'Accept'       => $p{accept} )   if $p{accept};
     $request->header( 'Content-Type' => $p{type} )     if $p{type};
     $request->header( 'If-Match'     => $p{if_match} ) if $p{if_match};
-    print {$self->{log}} scalar(localtime(time)), Dumper($request->headers), "\n";
     if ($p{method} eq 'PUT') {
         my $content_len = 0;
         $content_len = do { use bytes; length $p{content} } if $p{content};

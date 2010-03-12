@@ -1,11 +1,13 @@
-bin/wikrad
-Changes
-lib/Socialtext/Wikrad.pm
-lib/Socialtext/Wikrad/Listbox.pm
-lib/Socialtext/Wikrad/PageViewer.pm
-lib/Socialtext/Wikrad/Window.pm
+bin/twikrad
+lib/TiddlyWeb/EditPage.pm
+lib/TiddlyWeb/Resting.pm
+lib/TiddlyWeb/Resting/DefaultRester.pm
+lib/TiddlyWeb/Resting/Getopt.pm
+lib/TiddlyWeb/Wikrad.pm
+lib/TiddlyWeb/Wikrad/Listbox.pm
+lib/TiddlyWeb/Wikrad/PageViewer.pm
+lib/TiddlyWeb/Wikrad/Window.pm
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
 README
 t/use.t
-META.yml                                 Module meta-data (added by MakeMaker)
