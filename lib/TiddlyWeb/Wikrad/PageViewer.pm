@@ -22,8 +22,8 @@ sub next_link {
     my $pos = $self->{-pos};
     my $text = $self->get;
     my $after_text = substr($text, $pos, -1);
-    if ($after_text =~ m/\[\[(.)/) {
-        my $link_pos = $pos + $-[1];
+    if ($after_text =~ m/(\[\[.|\b[A-Z][a-z]+[A-Z][a-z]+\b)/) {
+        my $link_pos = $pos + $-[0] + 3;
         $self->{-pos} = $link_pos;
     }
 }
@@ -33,8 +33,8 @@ sub prev_link {
     my $pos = $self->{-pos};
     my $text = $self->get;
     my $before_text = reverse substr($text, 0, $pos);
-    if ($before_text =~ m/\]\](.)/) {
-        my $link_pos = $pos - $-[1] - 1;
+    if ($before_text =~ m/(\]\].|\b[a-z]+[A-Z][a-z]+[A-Z]\b)/) {
+        my $link_pos = $pos - $-[0] - 3;
         $self->{-pos} = $link_pos;
     }
 }
@@ -45,37 +45,50 @@ sub viewer_enter {
     my $text = $self->get;
     my $before_pos = substr($text, 0, $pos);
 
-    my @link_types = (
+    my @wikilink_types = (
+        [ '\W' => '\W' ],
+    );
+    my @freelink_types = (
         [ '\[\[' => '\]\]' ],
     );
     my $link_text;
-    my $new_wksp;
-    for my $link (@link_types) {
+    for my $link (@freelink_types) {
         my ($pre, $post) = @$link;
         if ($before_pos =~ m/$pre([^$post]*)$/) {
             $link_text = $1;
-            if (defined $2) {
-                $link_text = $2;
-                $new_wksp = $1;
-            }
             my $after_pos = substr($text, $pos, -1);
             if ($after_pos =~ m/([^$post]*)$post/) {
                 $link_text .= $1;
             }
             else {
                 $link_text = undef;
-                $new_wksp  = undef;
             }
         }
         if ($link_text) {
             if ($link_text =~ /[\w ]+\|([\w ]+.*)/) {
                 $link_text = $1;
             }
-            last;
+            return $App->set_page($link_text);
         }
     }
-
-    $App->set_page($link_text, $new_wksp) if $link_text;
+    for my $link (@wikilink_types) {
+        my ($pre, $post) = @$link;
+        if ($before_pos =~ m/$pre([^$post]*)$/) {
+            $link_text = $1;
+            my $after_pos = substr($text, $pos, -1);
+            if ($after_pos =~ m/([^$post]*)$post/) {
+                $link_text .= $1;
+            } else {
+                $link_text = undef;
+            }
+        }
+        if ($link_text) {
+            if ($link_text =~ /^[[:upper:]][[:lower:]]+[[:upper:]][[:lower:]]+$/) {
+                return $App->set_page($link_text);
+            }
+        }
+    }
+    return;
 }
 
 sub readonly($;)
@@ -195,14 +208,14 @@ sub draw_text(;$)
                 };
             };
             my @wiki_syntax = (
-                $full_line->('\^+ ', 'magenta'), # heading
+                $full_line->('\!+ ', 'magenta'), # heading
                 $full_line->('\*+ ', 'green'),   # list
-                $inline->('*', A_BOLD), 
-                $inline->('_', A_UNDERLINE), 
+                $inline->('**', A_BOLD), 
+                $inline->('//', A_UNDERLINE), 
                 $inline->('-', A_STANDOUT),
                 $inline->('-----', [A_STANDOUT, $make_color->('yellow')]),
                 { # link
-                    regex => qr/(.*?)(\[[^\]]+\])(.*)/,
+                    regex => qr/(.*?)(\[\[[^\]]+\]\]|[A-Z][a-z]+[A-Z][a-z]+)(.*)/,
                     cb => sub {
                         my ($i, @matches) = @_;
                         return unless $matches[0] or $matches[1];
