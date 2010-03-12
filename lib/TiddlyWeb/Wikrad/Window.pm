@@ -149,7 +149,7 @@ sub clone_page {
     my @args = @_; # obj, key, args
     my $template_page = $args[2] || $App->get_page;
     my $r = $App->{rester};
-    $r->accept('application/json');
+    $r->accept('perl_hash');
     my $template = $r->get_page($template_page);
     my $new_page = $App->{cui}->question("Title for new page:");
     if ($new_page) {

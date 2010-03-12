@@ -126,7 +126,7 @@ sub edit_page {
 
         eval { 
             $rester->put_page($page, {
-                    content => $new_content,
+                    text => $new_content,
                     tags => $orig_tags,
                     fields => $orig_fields,
                     bag => $bag,

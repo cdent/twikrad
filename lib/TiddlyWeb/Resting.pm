@@ -219,7 +219,7 @@ sub put_page {
     if ( ref $page_content ) {
         $type         = 'application/json';
         my $dict = {
-            'text' => $page_content->{content},
+            'text' => $page_content->{text},
             'tags' => $page_content->{tags},
             'fields' => $page_content->{fields},
         };
@@ -246,7 +246,6 @@ sub put_page {
     if (my $prev_etag = $self->{etag_cache}{$workspace}{$page_id}) {
         $extra_opts{if_match} = $prev_etag;
     }
-    print {$self->{log}} scalar(localtime(time)), 'if_match', $extra_opts{if_match}, "\n";
 
     my ( $status, $content ) = $self->_request(
         uri     => $uri,
