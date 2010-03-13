@@ -7,7 +7,7 @@ use File::Path qw/mkpath/;
 use base 'Exporter';
 our @EXPORT_OK = qw/$App/;
 
-our $VERSION = '0.07';
+our $VERSION = '0.1';
 
 =head1 NAME
 

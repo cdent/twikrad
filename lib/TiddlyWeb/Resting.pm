@@ -13,31 +13,6 @@ use Readonly;
 
 our $VERSION = '0.1';
 
-=head1 NAME
-
-TiddlyWeb::Resting - module for accessing Socialtext REST APIs
-
-=head1 SYNOPSIS
-
-  use TiddlyWeb::Resting;
-  my $Rester = TiddlyWeb::Resting->new(
-    username => $opts{username},
-    password => $opts{password},
-    server   => $opts{server},
-  );
-  $Rester->workspace('wikiname');
-  $Rester->get_page('my_page');
-}
-
-=head1 DESCRIPTION
-
-C<TiddlyWeb::Resting> is a module designed to allow remote access
-to the TiddlyWeb API for use in perl programs.
-
-=head1 METHODS
-
-=cut
-
 Readonly my $BASE_URI => '';
 Readonly my %ROUTES   => (
     page           => $BASE_URI . '/:type/:ws/tiddlers/:pname',
@@ -68,66 +43,13 @@ field 'json_verbose';
 field 'cookie';
 field 'agent_string';
 
-=head2 new
-
-    my $Rester = TiddlyWeb::Resting->new(
-        username => $opts{username},
-        password => $opts{password},
-        server   => $opts{server},
-    );
-
-    or
-
-    my $Rester = TiddlyWeb::Resting->new(
-        user_cookie => $opts{user_cookie},
-        server      => $opts{server},
-    );
-
-Creates a TiddlyWeb::Resting object for the specified
-server/user/password, or server/cookie combination.
-
-=cut
-
 sub new {
     my $invocant = shift;
     my $class    = ref($invocant) || $invocant;
     my $self     = {@_};
-    open($self->{log}, ">wiklog");
+    #open($self->{log}, ">wiklog"); # handy with debugging
     return bless $self, $class;
 }
-
-=head2 accept
-
-    $Rester->accept($mime_type);
-
-Sets the HTTP Accept header to ask the server for a specific
-representation in future requests.
-
-Standard representations:
-http://www.socialtext.net/st-rest-docs/index.cgi?standard_representations
-
-Common representations:
-
-=over 4
-
-=item text/plain
-
-=item text/html
-
-=item application/json
-
-=back
-
-=head2 get_page
-
-    $Rester->workspace('wikiname');
-    $Rester->get_page('page_name');
-
-Retrieves the content of the specified page.  Note that
-the workspace method needs to be called first to specify
-which workspace to operate on.
-
-=cut
 
 sub get_page {
     my $self = shift;
@@ -181,34 +103,6 @@ sub get_page {
     }
 }
 
-
-=head2 put_page
-
-    $Rester->workspace('wikiname');
-    $Rester->put_page('page_name',$content);
-
-Save the content as a page in the wiki.  $content can either be a string,
-which is treated as wikitext, or a hash with the following keys:
-
-=over
-
-=item content
-
-A string which is the page's wiki content or a hash of content
-plus other stuff.
-
-=item date
-
-RFC 2616 HTTP Date format string of the time the page was last edited
-
-=item from
-
-A username of the last editor of the page. If the the user does not exist it
-will be created, but will not be added to the workspace.
-
-=back
-
-=cut
 sub put_page {
     my $self         = shift;
     my $pname        = shift;
@@ -263,44 +157,8 @@ sub put_page {
     }
 }
 
-# REVIEW: This is here because of escaping problems we have with
-# apache web servers. This code effectively translate a Page->uri
-# to a Page->id. By so doing the troublesome characters are factored
-# out, getting us past a bug. This change should _not_ be maintained
-# any longer than strictly necessary, primarily because it
-# creates an informational dependency between client and server
-# code by representing name_to_id translation code on both sides
-# of the system. Since it is not used for page PUT, new pages
-# will safely have correct page titles.
-#
-# This method is useful for clients, so lets make it public.  In the
-# future, this call could go to the server to reduce code duplication.
-
-=head2 name_to_id
-
-    my $id = $Rester->name_to_id($name);
-    my $id = Socialtext::Resting::name_to_id($name);
-
-Convert a page name into a page ID.  Can be called as a method or 
-as a function.
-
-=cut
-
 sub _name_to_id { name_to_id(@_) }
 sub name_to_id { return shift; }
-# sub name_to_id {
-#     my $id = shift;
-#     $id = shift if ref($id); # handle being called as a method
-#     $id = '' if not defined $id;
-#     $id =~ s/[^\p{Letter}\p{Number}\p{ConnectorPunctuation}\pM]+/_/g;
-#     $id =~ s/_+/_/g;
-#     $id =~ s/^_(?=.)//;
-#     $id =~ s/(?<=.)_$//;
-#     $id =~ s/^0$/_/;
-#     $id = lc($id);
-#     return $id;
-# }
-
 
 sub _make_uri {
     my $self         = shift;
@@ -324,29 +182,12 @@ sub _make_uri {
     return $uri;
 }
 
-=head2 get_pages
-
-    $Rester->workspace('wikiname');
-    $Rester->get_pages();
-
-List all pages in the wiki.
-
-=cut
-
 sub get_pages {
     my $self = shift;
 
     return $self->_get_things('pages');
 }
 
-
-=head2 get_revisions
-
-    $Rester->get_revisions($page)
-
-List all the revisions of a page.
-
-=cut
 
 sub get_revisions {
     my $self = shift;
@@ -360,7 +201,6 @@ sub get_search {
 
     return $self->_get_things( 'search' );
 }
-
 
 sub _extend_uri {
     my $self = shift;
@@ -385,6 +225,7 @@ sub _extend_uri {
     return $uri;
 
 }
+
 sub _get_things {
     my $self         = shift;
     my $things       = shift;
@@ -439,14 +280,6 @@ sub _get_things {
     }
 }
 
-=head2 get_workspace
-
-    $Rester->get_workspace();
-
-Return the metadata about a particular workspace.
-
-=cut
-
 sub get_workspace {
     my $self = shift;
     my $wksp = shift;
@@ -458,20 +291,11 @@ sub get_workspace {
     return $result;
 }
 
-=head2 get_workspaces
-
-    $Rester->get_workspaces();
-
-List all workspaces on the server
-
-=cut
-
 sub get_workspaces {
     my $self = shift;
 
     return $self->_get_things('workspaces');
 }
-
 
 sub _request {
     my $self = shift;
@@ -516,6 +340,130 @@ sub _request {
         $self->response );
 }
 
+=head1 NAME
+
+TiddlyWeb::Resting - module for accessing TiddlyWeb HTTP API
+
+=head1 SYNOPSIS
+
+  use TiddlyWeb::Resting;
+  my $Rester = TiddlyWeb::Resting->new(
+    username => $opts{username},
+    password => $opts{password},
+    server   => $opts{server},
+  );
+  $Rester->workspace('wikiname');
+  $Rester->get_page('my_page');
+}
+
+=head1 DESCRIPTION
+
+C<TiddlyWeb::Resting> is a module designed to allow remote access
+to the TiddlyWeb API for use in Perl programs. It is a work in
+progress, adapting C<Socialtext::Resting>. It maintains the
+terms, from Socialtext, of workspace and page, which are translated
+to recipe and tiddler.
+
+=head1 METHODS
+
+=head2 new
+
+    my $Rester = TiddlyWeb::Resting->new(
+        username => $opts{username},
+        password => $opts{password},
+        server   => $opts{server},
+    );
+
+    or
+
+    my $Rester = TiddlyWeb::Resting->new(
+        user_cookie => $opts{user_cookie},
+        server      => $opts{server},
+    );
+
+Creates a TiddlyWeb::Resting object for the specified
+server/user/password, or server/cookie combination.
+
+=head2 accept
+
+    $Rester->accept($mime_type);
+
+Sets the HTTP Accept header to ask the server for a specific
+representation in future requests.
+
+Common representations:
+
+=over 4
+
+=item text/plain
+
+=item text/html
+
+=item application/json
+
+=item text/x-tiddlywiki
+
+=back
+
+=head2 get_page
+
+    $Rester->workspace('wikiname');
+    $Rester->get_page('page_name');
+
+Retrieves the content of the specified page.  Note that
+the workspace method needs to be called first to specify
+which workspace to operate on.
+
+=head2 put_page
+
+    $Rester->workspace('wikiname');
+    $Rester->put_page('page_name',$content);
+
+Save the content as a page in the wiki.  $content can either be a string,
+which is treated as wikitext, or a hash with the following keys:
+
+=over
+
+=item text
+
+A string which is the page's wiki content or a hash of content
+plus other stuff.
+
+=item tags
+
+A list of tags.
+
+=item fields
+
+A hash of arbitrary key value pairs.
+
+=back
+
+=head2 get_pages
+
+    $Rester->workspace('wikiname');
+    $Rester->get_pages();
+
+List all pages in the wiki.
+
+=head2 get_revisions
+
+    $Rester->get_revisions($page)
+
+List all the revisions of a page.
+
+=head2 get_workspace
+
+    $Rester->get_workspace();
+
+Return the metadata about a particular workspace.
+
+=head2 get_workspaces
+
+    $Rester->get_workspaces();
+
+List all workspaces on the server
+
 =head2 response
 
     my $resp = $Rester->response;
@@ -523,6 +471,10 @@ sub _request {
 Return the HTTP::Response object from the last request.
 
 =head1 AUTHORS / MAINTAINERS
+
+Chris Dent C<< <cdent@peermore.com> >>
+
+Based on work by:
 
 Luke Closs C<< <luke.closs@socialtext.com> >>
 
