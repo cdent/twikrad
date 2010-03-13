@@ -100,8 +100,6 @@ sub tag_page {
     $r->accept('perl_hash');
     my $page_name = $App->get_page;
     my @tags = split(/\s*,\s*/, $App->{win}{tag_box}->text);
-    $App->{cui}->status("tags are @tags");
-    sleep 1;
     my $question = "Enter new tags, separate with commas, prefix with '-' to remove\n  ";
     if (@tags) {
         $question .= join(", ", @tags) . "\n";
@@ -157,7 +155,6 @@ sub clone_page {
     my $new_page = $App->{cui}->question("Title for new page:");
     if ($new_page) {
         $App->{cui}->status("Creating page ...");
-        $App->{cui}->nostatus;
         eval { $r->put_page($new_page, $template); };
         if ($@) {
             $App->{cui}->dialog("Error: $@");
