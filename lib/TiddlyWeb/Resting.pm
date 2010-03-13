@@ -137,7 +137,11 @@ sub put_page {
 
     my %extra_opts;
     my $page_id = name_to_id($pname);
-    if (my $prev_etag = $self->{etag_cache}{$workspace}{$page_id}) {
+    if ($bag) {
+        if (my $prev_etag = $self->{etag_cache}{"bag:$bag"}{$page_id}) {
+            $extra_opts{if_match} = $prev_etag;
+        }
+    } elsif (my $prev_etag = $self->{etag_cache}{"recipe:$workspace"}{$page_id}) {
         $extra_opts{if_match} = $prev_etag;
     }
 
