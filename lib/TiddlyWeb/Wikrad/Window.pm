@@ -97,31 +97,34 @@ EOT
 
 sub tag_page {
     my $r = $App->{rester};
-    $App->{cui}->status('Adding tags not yet ready ...');
+    $r->accept('perl_hash');
+    my $page_name = $App->get_page;
+    my @tags = split(/\s*,\s*/, $App->{win}{tag_box}->text);
+    $App->{cui}->status("tags are @tags");
     sleep 1;
-    $App->{cui}->nostatus;
-#     $r->accept('text/plain');
-#     my $page_name = $App->get_page;
-#     my @tags = $r->get_pagetags($page_name);
-#     $App->{cui}->nostatus;
-#     my $question = "Enter new tags, separate with commas, prefix with '-' to remove\n  ";
-#     if (@tags) {
-#         $question .= join(", ", @tags) . "\n";
-#     }
-#     my $newtags = $App->{cui}->question($question) || '';
-#     my @new_tags = split(/\s*,\s*/, $newtags);
-#     if (@new_tags) {
-#         $App->{cui}->status("Tagging $page_name ...");
-#         for my $t (@new_tags) {
-#             if ($t =~ s/^-//) {
-#                 eval { $r->delete_pagetag($page_name, $t) };
-#             }
-#             else {
-#                 $r->put_pagetag($page_name, $t);
-#             }
-#         }
-#         $App->{cui}->nostatus;
-#     }
+    my $question = "Enter new tags, separate with commas, prefix with '-' to remove\n  ";
+    if (@tags) {
+        $question .= join(", ", @tags) . "\n";
+    }
+    my $newtags = $App->{cui}->question($question) || '';
+    my @new_tags = split(/\s*,\s*/, $newtags);
+    my @store_tags;
+    if (@new_tags) {
+        $App->{cui}->status("Tagging $page_name with @new_tags...");
+        for my $t (@new_tags) {
+            unless ($t =~ m/^-/) {
+                push(@store_tags, $t);
+            }
+        }
+        my $page = $r->get_page($page_name);
+        $page->{tags} = \@store_tags;
+        eval { $r->put_page($page_name, $page); };
+        if ($@) {
+            $App->{cui}->dialog("Error: $@");
+        }
+        $App->{cui}->nostatus;
+        $App->set_page($page_name);
+    }
 }
 
 sub show_metadata {
@@ -154,10 +157,14 @@ sub clone_page {
     my $new_page = $App->{cui}->question("Title for new page:");
     if ($new_page) {
         $App->{cui}->status("Creating page ...");
-        $r->put_page($new_page, $template);
         $App->{cui}->nostatus;
-
-        $App->set_page($new_page);
+        eval { $r->put_page($new_page, $template); };
+        if ($@) {
+            $App->{cui}->dialog("Error: $@");
+            $App->set_page($template_page);
+        } else {
+            $App->set_page($new_page);
+        }
     }
 }
 
@@ -241,48 +248,6 @@ sub workspace_change {
             change_cb => sub {
                 my $wksp = shift;
                 $App->set_page(undef, $wksp);
-            },
-        );
-    }
-}
-
-sub tag_change {
-    my $r = $App->{rester};
-    my $tag = $App->{win}{tag_box}->text;
-
-    my $chose_tagged_page = sub {
-        my $tag = shift;
-        $App->{cui}->status('Fetching tagged pages ...');
-        $r->accept('text/plain');
-        my @pages = $r->get_taggedpages($tag);
-        $App->{cui}->nostatus;
-        if (@pages == 0) {
-            $App->{cui}->dialog("No pages tagged '$tag' found ...");
-            return;
-        }
-        $App->{win}->listbox(
-            -title => 'Choose a tagged page',
-            -values => \@pages,
-            change_cb => sub {
-                my $page = shift;
-                $App->set_page($page) if $page;
-            },
-        );
-    };
-    if ($tag) {
-        $chose_tagged_page->($tag);
-    }
-    else {
-        $App->{cui}->status('Fetching workspace tags ...');
-        $r->accept('text/plain');
-        my @tags = $r->get_workspace_tags;
-        $App->{cui}->nostatus;
-        $App->{win}->listbox(
-            -title => 'Choose a tag:',
-            -values => \@tags,
-            change_cb => sub {
-                my $tag = shift;
-                $chose_tagged_page->($tag) if $tag;
             },
         );
     }
