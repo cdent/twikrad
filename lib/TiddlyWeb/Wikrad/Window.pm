@@ -37,6 +37,7 @@ sub new {
     $v->set_binding( \&save_to_file,             'W' );
     $v->set_binding( \&search,                   's' );
     $v->set_binding( \&tag_page,                 'T' );
+    $v->set_binding( \&process_macros,           'M' );
 
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { $v->focus },                 'v' );
@@ -58,6 +59,38 @@ sub new {
     $v->set_binding( sub { $v->cursor_to_end },  'G' );
 
     return $self;
+}
+
+sub process_macros {
+    my $r = $App->{rester};
+    my $viewer = $App->{win}{viewer};
+    $App->{cui}->status('Processing Macros ...');
+    my $page_text = $viewer->text;
+    # deal with <<list filter>>
+    while($page_text =~ m/(<<list\s+filter\s+\[(.+?)\[(.+?)\]\]>>)/g) {
+        my $matched = $1;
+        my $command = $2;
+        my $args = $3;
+        $r->filter("$command:$args");
+        $r->accept('text/plain');
+        my @pages = split(/\n/, $r->get_pages());
+        $r->filter('');
+        my $new_text = '* ' . join("\n* ", map {"[[$_]]"} @pages);
+        $page_text =~ s/\Q$matched\E/$command:$args\n$new_text/;
+    }
+    # deal with <<tiddler includes>>
+    while($page_text =~ m/<<tiddler \[\[(.+?)\]\]>>/g) {
+        my $included_page = $1;
+        $r->accept('perl_hash');
+        my $included_page_info = $r->get_page($included_page);
+        my $included_text = $included_page_info->{text};
+        my $new_text = "-----Included Tiddler----- [[$included_page]]\n"
+                       . "$included_text\n"
+                       . "-----End Include----- \n";
+        $page_text =~ s/<<tiddler \[\[\Q$included_page\E\]\]>>/$new_text/;
+    }
+    $viewer->text($page_text);
+    $App->{cui}->nostatus;
 }
 
 sub show_help {
@@ -82,6 +115,7 @@ Awesome Commands:
  s   - search
  u   - show the uri for the current page
  m   - show page metadata (tags, revision)
+ M   - process macros (tiddler, list)
  T   - Tag page
  c   - clone this page
  S   - Change REST server
