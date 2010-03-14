@@ -79,7 +79,7 @@ sub process_macros {
         $page_text =~ s/\Q$matched\E/$command:$args\n$new_text/;
     }
     # deal with <<tiddler includes>>
-    while($page_text =~ m/<<tiddler \[\[(.+?)\]\]>>/g) {
+    while($page_text =~ m/<<tiddler \[?\[?(.+?)\]?\]?>>/g) {
         my $included_page = $1;
         $r->accept('perl_hash');
         my $included_page_info = $r->get_page($included_page);
@@ -87,7 +87,7 @@ sub process_macros {
         my $new_text = "-----Included Tiddler----- [[$included_page]]\n"
                        . "$included_text\n"
                        . "-----End Include----- \n";
-        $page_text =~ s/<<tiddler \[\[\Q$included_page\E\]\]>>/$new_text/;
+        $page_text =~ s/<<tiddler \[?\[?\Q$included_page\E\]?\]?>>/$new_text/;
     }
     $viewer->text($page_text);
     $App->{cui}->nostatus;
