@@ -65,7 +65,7 @@ sub viewer_enter {
             }
         }
         if ($link_text) {
-            if ($link_text =~ /[\w ]+\|([\w ]+.*)/) {
+            if ($link_text =~ /[\w ]+\|([^]]+.*)/) {
                 $link_text = $1;
             }
             return $App->set_page($link_text);
