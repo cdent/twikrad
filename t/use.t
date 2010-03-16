@@ -10,6 +10,6 @@ BEGIN {
     use_ok 'TiddlyWeb::Wikrad::Listbox';
     use_ok 'TiddlyWeb::Resting';
     use_ok 'TiddlyWeb::Resting::DefaultRester';
-    use_ok 'TiddlyWeb::Resting::GetOpt';
+    use_ok 'TiddlyWeb::Resting::Getopt';
     use_ok 'TiddlyWeb::EditPage';
 }

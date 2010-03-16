@@ -49,7 +49,7 @@ blocks.
 
 sub new {
     my ($class, %opts) = @_;
-    $opts{rester};
+    $opts{rester} = undef;
     my $self = { %opts };
     bless $self, $class;
     return $self;

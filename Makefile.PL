@@ -14,6 +14,7 @@ WriteMakefile(
         'JSON::XS'      => '0',
         'Class::Field'  => '0',
         'Readonly'      => '0',
+        'URI'           => '0',
         'YAML'          => '0',
     },
     EXE_FILES           => ['bin/twikrad'],
