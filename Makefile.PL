@@ -15,6 +15,7 @@ WriteMakefile(
         'Class::Field'  => '0',
         'Readonly'      => '0',
         'URI'           => '0',
+        'LWP::UserAgent' => '0',
         'YAML'          => '0',
     },
     EXE_FILES           => ['bin/twikrad'],
