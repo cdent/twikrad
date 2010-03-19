@@ -49,7 +49,6 @@ blocks.
 
 sub new {
     my ($class, %opts) = @_;
-    $opts{rester} = undef;
     my $self = { %opts };
     bless $self, $class;
     return $self;
@@ -254,7 +253,7 @@ sub _handle_error {
     }
     warn "Failed to write '$page', saving to $file\n";
     _write_file($file, $content);
-    die "$err\n";
+    die "wrote backup to: $file\n$err\n";
 }
 
 sub _write_file {

@@ -254,12 +254,21 @@ sub editor {
     );
 
     my $page = $App->get_page;
-    $ep->edit_page(
-        page => $page,
-    );
+    eval {
+        $ep->edit_page(
+            page => $page,
+        );
+    };
+    if ($@) {
+        my ($message) = ($@ =~ /(.*?)\n/);
+        $App->{cui}->reset_curses;
+        $App->{cui}->dialog("Error, so: $message");
+        $App->load_page;
+    } else {
+        $App->{cui}->reset_curses;
+        $App->load_page;
+    }
 
-    $App->{cui}->reset_curses;
-    $App->load_page;
 }
 
 sub workspace_change {
