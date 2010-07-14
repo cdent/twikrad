@@ -4,6 +4,7 @@ use strict;
 use Carp qw/croak/;
 use File::Temp;
 use JSON::XS;
+use Encode;
 
 =head1 NAME
 
@@ -274,6 +275,7 @@ sub _read_file {
         $new_content = <$fh>;
     }
     close $fh;
+    $new_content = decode("UTF-8", $new_content);
     return $new_content;
 }
 
