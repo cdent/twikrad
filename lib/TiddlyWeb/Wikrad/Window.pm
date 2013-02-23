@@ -23,7 +23,7 @@ sub new {
     $v->set_binding( \&recently_changed,         'r' );
     $v->set_binding( \&show_uri,                 'u' );
     if ($self->{config}{vim_insert_keys_start_vim}) {
-        for my $key qw(i a o A) {
+        for my $key (qw(i a o A)) {
             $v->set_binding( sub { editor(
                 command => $key,
                 line => $v->{-ypos} + 1,
